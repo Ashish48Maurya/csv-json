@@ -90,9 +90,9 @@ export const calculateAgeGroupDistribution = (users) => {
 
 
 export const printAgeGroupReport = (distribution) => {
-    console.log("Age-Group % Distribution");
-    console.log("------------------------");
-    Object.keys(distribution).forEach(key => {
-        console.log(`${key} ${distribution[key]}`);
-    });
-}
+    const table = Object.keys(distribution).map(key => ({
+        "Age-Group": key,
+        "% Distribution": distribution[key]
+    }));
+    console.table(table);
+};
