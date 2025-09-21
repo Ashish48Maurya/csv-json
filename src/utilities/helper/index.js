@@ -1,14 +1,20 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        const uploadPath = "uploads/";
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
+        cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + "-" + file.originalname);
     }
 });
+
 
 const fileFilter = (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -23,7 +29,6 @@ export const upload = multer({
     storage,
     fileFilter
 });
-
 
 
 function setNestedProperty(obj, keyPath, value) {
@@ -51,4 +56,43 @@ export const parseCSV = (content) => {
         return obj;
     });
     return data;
+}
+
+const ageGroups = [
+    { label: "< 20", min: 0, max: 19 },
+    { label: "20 to 40", min: 20, max: 40 },
+    { label: "40 to 60", min: 41, max: 60 },
+    { label: "> 60", min: 61, max: Infinity }
+];
+
+
+export const calculateAgeGroupDistribution = (users) => {
+    const total = users.length;
+    const distribution = {};
+
+
+    ageGroups.forEach(group => {
+        distribution[group.label] = 0;
+    });
+
+    users.forEach(user => {
+        const age = Number(user.age);
+        const group = ageGroups.find(g => age >= g.min && age <= g.max);
+        if (group) distribution[group.label] += 1;
+    });
+
+    Object.keys(distribution).forEach(key => {
+        distribution[key] = ((distribution[key] / total) * 100).toFixed(2);
+    });
+
+    return distribution;
+}
+
+
+export const printAgeGroupReport = (distribution) => {
+    console.log("Age-Group % Distribution");
+    console.log("------------------------");
+    Object.keys(distribution).forEach(key => {
+        console.log(`${key} ${distribution[key]}`);
+    });
 }
